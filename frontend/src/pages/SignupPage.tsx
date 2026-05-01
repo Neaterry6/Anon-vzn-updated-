@@ -1,0 +1,5 @@
+import React,{useState} from 'react';
+import { useNavigate } from 'react-router-dom';
+import { setUsers, users } from '../lib/storage';
+export default function SignupPage(){const [f,setF]=useState({username:'',email:'',password:'',igHandle:''});const [msg,setMsg]=useState('');const nav=useNavigate();
+return <main className='page'><section className='card'><h1>Create Account</h1><input placeholder='username' onChange={e=>setF({...f,username:e.target.value})}/><input placeholder='instagram handle' onChange={e=>setF({...f,igHandle:e.target.value})}/><input placeholder='email' onChange={e=>setF({...f,email:e.target.value})}/><input type='password' placeholder='password' onChange={e=>setF({...f,password:e.target.value})}/><button onClick={()=>{const all=users();if(all.find(u=>u.email===f.email)) return setMsg('Email exists');const link=`/u/${f.username||'anon'}`;all.push({...f,role:'user',link});setUsers(all);setMsg(`Account ready. Your link: ${location.origin}${link}`);}}>Create Account</button><button onClick={()=>nav('/login')}>Log in</button><p>{msg}</p></section></main>}

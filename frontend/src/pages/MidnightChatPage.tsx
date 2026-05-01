@@ -1,0 +1,2 @@
+import React,{useState} from 'react';
+export default function MidnightChatPage(){const [txt,setTxt]=useState('');const [msgs,setMsgs]=useState(['Did anyone see the teaser for the new reveal mechanism?']);return <main className='page'><section className='card'><h1>Midnight Renegades</h1>{msgs.map((m,i)=><div key={i} className='bubble'>{m}</div>)}<input value={txt} onChange={e=>setTxt(e.target.value)} placeholder='Type a message...'/><button onClick={()=>{if(txt)setMsgs([...msgs,txt]);setTxt('')}}>Send</button><button>Reveal Sender</button></section></main>}

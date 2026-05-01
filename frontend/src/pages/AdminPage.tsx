@@ -1,0 +1,2 @@
+import React from 'react';import { session, users } from '../lib/storage';
+export default function AdminPage(){const s=session();if(s?.role!=='admin') return <main className='page'><section className='card'>Unauthorized</section></main>;const all=users();return <main className='page'><section className='card'><h1>Admin Panel</h1><p>Total users: {all.length}</p><button>Generate Report</button></section><section className='card'>{all.map(u=><div key={u.email} className='item'><b>{u.username}</b><button>Verify</button><button>Suspend</button></div>)}</section></main>}

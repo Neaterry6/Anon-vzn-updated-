@@ -1,0 +1,2 @@
+import React,{useState} from 'react';
+export default function NeonPulsePage(){const [v,setV]=useState('');const [list,setList]=useState(['Has anyone checked out the secret lounge reveal?']);return <main className='page'><section className='card'><h1>Neon Pulse</h1>{list.map((m,i)=><div className='bubble' key={i}>{m}</div>)}<input value={v} onChange={e=>setV(e.target.value)} placeholder='Type a whisper...'/><button onClick={()=>{if(v)setList([...list,v]);setV('')}}>Send</button></section></main>}

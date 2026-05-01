@@ -1,0 +1,3 @@
+import React,{useState} from 'react'; import { useNavigate } from 'react-router-dom'; import { setSession, users } from '../lib/storage';
+export default function LoginPage(){const [email,setEmail]=useState('');const [password,setPassword]=useState('');const [m,setM]=useState('');const nav=useNavigate();
+return <main className='page'><section className='card'><h1>Enter Sanctuary</h1><input placeholder='email' onChange={e=>setEmail(e.target.value)}/><input type='password' placeholder='secret key' onChange={e=>setPassword(e.target.value)}/><button onClick={()=>{const u=users().find(x=>x.email===email&&x.password===password);if(!u) return setM('Invalid credentials');setSession(u);nav('/dashboard');}}>Login</button><p>{m}</p></section></main>}

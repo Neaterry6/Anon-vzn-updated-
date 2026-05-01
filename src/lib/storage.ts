@@ -1,0 +1,6 @@
+export type User={id:string;username:string;email:string;password:string;igHandle:string;role:'user'|'admin';link:string;bio?:string;photo?:string};
+const K={users:'users',session:'session',posts:'posts',stories:'stories',dms:'dms',follows:'follows',requests:'requests'};
+const read=(k:string,d:any)=>JSON.parse(localStorage.getItem(k)||JSON.stringify(d));
+const write=(k:string,v:any)=>localStorage.setItem(k,JSON.stringify(v));
+export const db={users:()=>read(K.users,[]) as User[],setUsers:(v:User[])=>write(K.users,v),session:()=>read(K.session,null) as User|null,setSession:(v:User|null)=>v?write(K.session,v):localStorage.removeItem(K.session),posts:()=>read(K.posts,[]),setPosts:(v:any[])=>write(K.posts,v),stories:()=>read(K.stories,[]),setStories:(v:any[])=>write(K.stories,v),dms:()=>read(K.dms,[]),setDms:(v:any[])=>write(K.dms,v),follows:()=>read(K.follows,{}),setFollows:(v:any)=>write(K.follows,v),requests:()=>read(K.requests,[]),setRequests:(v:any[])=>write(K.requests,v)};
+export const seed=()=>{const u=db.users();if(!u.find(x=>x.email==='admin@anonvzn.app')){u.push({id:'admin',username:'Root_Admin',email:'admin@anonvzn.app',password:'Admin@1234',igHandle:'@root_admin',role:'admin',link:'/u/root_admin'});db.setUsers(u);}};

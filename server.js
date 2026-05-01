@@ -1,27 +1,17 @@
-import http from 'http';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const staticDir = path.join(__dirname, 'frontend', 'dist');
-
-const state = { inbox:[{id:1,text:'I saw you at the gallery today... did you notice me? 🎨',revealed:false,read:false}], payments:[{id:'starter',title:'5 Reveals',price:1500}], moderation:{enabled:true}, notes:['Messages are stored client-side in this demo. Deleting browser storage deletes inbox history.'] };
-const badWords=['kill','hate','idiot'];
-const send=(res,code,payload,type='application/json')=>{res.writeHead(code,{'Content-Type':type});res.end(type==='application/json'?JSON.stringify(payload):payload)};
-const body=req=>new Promise(resolve=>{let b='';req.on('data',d=>b+=d);req.on('end',()=>resolve(b?JSON.parse(b):{}));});
-
-http.createServer(async (req,res)=>{
-  const url = new URL(req.url,'http://localhost');
-  if(url.pathname==='/api/state'&&req.method==='GET') return send(res,200,state);
-  if(url.pathname==='/api/verify'&&req.method==='POST'){const {code}=await body(req);return String(code)==='123456'?send(res,200,{success:true,message:'Verification successful'}):send(res,400,{success:false,message:'Invalid code'});} 
-  if(url.pathname==='/api/message/send'&&req.method==='POST'){const {text}=await body(req); if(badWords.some(w=>String(text).toLowerCase().includes(w))) return send(res,400,{success:false,message:'Blocked by AI moderation'}); return send(res,200,{success:true,message:'Anonymous message delivered'});}
-  if(url.pathname==='/api/ai/chat'&&req.method==='POST'){const {provider,prompt}=await body(req);const engine=provider==='grok'?'Grok':'Gemini';return send(res,200,{reply:`[${engine}] Insight: ${prompt || 'Ask me anything'} | Caveat: anonymity is never absolute.`});}
-  if(url.pathname==='/api/reveal/1'&&req.method==='POST'){state.inbox[0].revealed=true;state.inbox[0].sender='Neon_VIP';return send(res,200,state.inbox[0]);}
-
-  let filePath = path.join(staticDir, url.pathname === '/' ? 'index.html' : url.pathname.slice(1));
-  if (!filePath.startsWith(staticDir) || !fs.existsSync(filePath)) filePath = path.join(staticDir, 'index.html');
-  if (fs.existsSync(filePath)) return send(res,200,fs.readFileSync(filePath),filePath.endsWith('.js')?'text/javascript':filePath.endsWith('.css')?'text/css':'text/html');
-  return send(res,200,'Build frontend first: cd frontend && npm install && npm run build','text/plain');
-}).listen(3000,()=>console.log('API running on :3000'));
+import http from 'http';import fs from 'fs';import path from 'path';import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);const __dirname = path.dirname(__filename);const staticDir = path.join(__dirname,'dist');
+const publicDir = path.join(__dirname,'public');
+const badWords=['kill','hate','idiot'];const qwenModels=['qwen-max','qwen-plus','qwen-turbo','qwen-vl','qwen-audio','qwen-code'];
+const state={users:new Set(),messages:{}};
+const send=(res,c,p,t='application/json')=>{res.writeHead(c,{'Content-Type':t});res.end(t==='application/json'?JSON.stringify(p):p)};const body=req=>new Promise(r=>{let b='';req.on('data',d=>b+=d);req.on('end',()=>r(b?JSON.parse(b):{}));});
+const publicHtml=(username)=>`<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>AnonVZN @${username}</title><style>body{margin:0;font-family:Inter,system-ui;background:radial-gradient(circle at top,#ffd8ec,#f2f0f5);display:grid;place-items:center;min-height:100vh}.c{background:#fff;padding:28px;border-radius:30px;box-shadow:0 12px 40px #0001;max-width:680px;width:92%}h1{font-size:42px;margin:0 0 8px;background:linear-gradient(90deg,#d00177,#ff7d1f);-webkit-background-clip:text;color:transparent}textarea{width:100%;height:170px;border:1px solid #eedbe6;background:#faeff5;border-radius:16px;padding:12px}button{margin-top:8px;border:0;border-radius:999px;padding:12px 18px;color:#fff;background:linear-gradient(90deg,#d00177,#ff7d1f);font-weight:700}</style></head><body><div class='c'><h1>Send anonymous whisper</h1><p>to @${username}</p><textarea id='t' placeholder='Type message...'></textarea><br/><button onclick='sendMsg()'>✉️ Send</button><p id='m'></p></div><script>async function sendMsg(){const text=document.getElementById('t').value;const r=await fetch('/api/public/${username}/message',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({text})});const j=await r.json();document.getElementById('m').innerText=j.message||j.error; if(j.message) document.getElementById('t').value='';}</script></body></html>`;
+http.createServer(async(req,res)=>{const url=new URL(req.url,'http://localhost');
+ if(url.pathname==='/api/users/register'&&req.method==='POST'){const {username=''}=await body(req);if(!username)return send(res,400,{error:'username required'});state.users.add(username);if(!state.messages[username])state.messages[username]=[];return send(res,200,{ok:true,link:`/u/${username}`});}
+ if(url.pathname.startsWith('/api/public/')&&url.pathname.endsWith('/message')&&req.method==='POST'){const username=url.pathname.split('/')[3];const {text=''}=await body(req);if(!text.trim())return send(res,400,{error:'message required'});if(badWords.some(w=>text.toLowerCase().includes(w))) return send(res,400,{error:'Blocked by AI moderation'});if(!state.messages[username])state.messages[username]=[];state.messages[username].push({text,at:Date.now(),anon:true});return send(res,200,{message:'Sent anonymously'});}
+ if(url.pathname.startsWith('/api/inbox/')&&req.method==='GET'){const username=url.pathname.split('/').pop();return send(res,200,{messages:state.messages[username]||[]});}
+ if(url.pathname==='/api/ai/chat'&&req.method==='POST'){const {provider='gemini',model='qwen-max',prompt=''}=await body(req);if(provider==='qwen'&&!qwenModels.includes(model)) return send(res,400,{error:'Invalid qwen model'});return send(res,200,{reply:`[${provider}${provider==='qwen'?':'+model:''}] ${prompt || 'Hello'} | Demo mode. Add keys in .env.`});}
+ if(url.pathname.startsWith('/u/')) return send(res,200,publicHtml(url.pathname.split('/')[2]),'text/html');
+ let f=path.join(staticDir,url.pathname==='/'?'index.html':url.pathname.slice(1));if(!f.startsWith(staticDir)||!fs.existsSync(f)) f=path.join(staticDir,'index.html');if(fs.existsSync(f)) return send(res,200,fs.readFileSync(f),f.endsWith('.js')?'text/javascript':f.endsWith('.css')?'text/css':'text/html');
+ if (fs.existsSync(path.join(publicDir,'index.html'))) return send(res,200,fs.readFileSync(path.join(publicDir,'index.html')),'text/html');
+ return send(res,200,'App not built yet. Ensure build output exists.','text/plain');
+}).listen(3000,()=>console.log('running :3000'));

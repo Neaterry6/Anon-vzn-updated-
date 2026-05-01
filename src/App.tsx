@@ -1,0 +1,5 @@
+import React,{useEffect} from 'react';import { Link, Route, Routes } from 'react-router-dom';
+import { seed } from './lib/storage';
+import { Login, Signup } from './pages/AuthPages';
+import FeedPage from './pages/FeedPage';import ProfilePage from './pages/ProfilePage';import DmPage from './pages/DmPage';import PublicLinkPage from './pages/PublicLinkPage';import { Admin, AI, Settings } from './pages/SettingsAdminAiPages';
+export default function App(){useEffect(()=>seed(),[]);return <main className='page'><nav className='top'>{['/','/login','/feed','/dm','/settings','/admin','/ai'].map(p=><Link key={p} to={p}>{p==='/'?'signup':p.slice(1)}</Link>)}</nav><Routes><Route path='/' element={<Signup/>}/><Route path='/login' element={<Login/>}/><Route path='/feed' element={<FeedPage/>}/><Route path='/profile/:username' element={<ProfilePage/>}/><Route path='/dm' element={<DmPage/>}/><Route path='/settings' element={<Settings/>}/><Route path='/admin' element={<Admin/>}/><Route path='/ai' element={<AI/>}/><Route path='/u/:username' element={<PublicLinkPage/>}/></Routes></main>}

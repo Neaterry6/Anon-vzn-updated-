@@ -10,12 +10,6 @@ http.createServer(async(req,res)=>{const url=new URL(req.url,'http://localhost')
  if(url.pathname.startsWith('/api/public/')&&url.pathname.endsWith('/message')&&req.method==='POST'){const username=url.pathname.split('/')[3];const {text=''}=await body(req);if(!text.trim())return send(res,400,{error:'message required'});if(badWords.some(w=>text.toLowerCase().includes(w))) return send(res,400,{error:'Blocked by AI moderation'});if(!state.messages[username])state.messages[username]=[];state.messages[username].push({text,at:Date.now(),anon:true});return send(res,200,{message:'Sent anonymously'});}
  if(url.pathname.startsWith('/api/inbox/')&&req.method==='GET'){const username=url.pathname.split('/').pop();return send(res,200,{messages:state.messages[username]||[]});}
  if(url.pathname==='/api/ai/chat'&&req.method==='POST'){const {provider='gemini',model='qwen-max',prompt=''}=await body(req);if(provider==='qwen'&&!qwenModels.includes(model)) return send(res,400,{error:'Invalid qwen model'});return send(res,200,{reply:`[${provider}${provider==='qwen'?':'+model:''}] ${prompt || 'Hello'} | Demo mode. Add keys in .env.`});}
-
- const pubFile = path.join(publicDir, url.pathname === '/' ? 'index.html' : url.pathname.slice(1));
- if (pubFile.startsWith(publicDir) && fs.existsSync(pubFile) && fs.statSync(pubFile).isFile()) {
-   return send(res,200,fs.readFileSync(pubFile),pubFile.endsWith('.js')?'text/javascript':pubFile.endsWith('.css')?'text/css':'text/html');
- }
-
  if(url.pathname.startsWith('/u/')) return send(res,200,publicHtml(url.pathname.split('/')[2]),'text/html');
  let f=path.join(staticDir,url.pathname==='/'?'index.html':url.pathname.slice(1));if(!f.startsWith(staticDir)||!fs.existsSync(f)) f=path.join(staticDir,'index.html');if(fs.existsSync(f)) return send(res,200,fs.readFileSync(f),f.endsWith('.js')?'text/javascript':f.endsWith('.css')?'text/css':'text/html');
  if (fs.existsSync(path.join(publicDir,'index.html'))) return send(res,200,fs.readFileSync(path.join(publicDir,'index.html')),'text/html');

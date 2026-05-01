@@ -1,0 +1,2 @@
+import React,{useState} from 'react';
+export default function SupportPage(){const [m,setM]=useState('');const [list,setList]=useState(['Hello! Welcome to Anon VZN support.']);return <main className='page split'><aside className='side'>Support History</aside><section className='card'><h1>Admin Support</h1>{list.map((x,i)=><div key={i} className='bubble'>{x}</div>)}<input value={m} onChange={e=>setM(e.target.value)} placeholder='Type message to admin...'/><button onClick={()=>{if(m) setList([...list,m]);setM('')}}>Send</button></section></main>}

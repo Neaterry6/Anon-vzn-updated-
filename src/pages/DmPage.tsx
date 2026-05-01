@@ -1,0 +1,3 @@
+import React,{useState} from 'react';import { db } from '../lib/storage';
+export default function DmPage(){const me=db.session();const [to,setTo]=useState('');const [txt,setTxt]=useState('');const [dms,setDms]=useState(db.dms());
+return <section className='card'><h1>DM Chat</h1><input placeholder='to username' value={to} onChange={e=>setTo(e.target.value)}/><input placeholder='message' value={txt} onChange={e=>setTxt(e.target.value)}/><button onClick={()=>{const m=[...dms,{from:me?.username,to,text:txt,at:Date.now()}];setDms(m);db.setDms(m);setTxt('')}}>Send DM</button>{dms.filter((x:any)=>x.from===me?.username||x.to===me?.username).map((m:any,i:number)=><div key={i} className='bubble'><b>{m.from}→{m.to}</b> {m.text}</div>)}</section>}

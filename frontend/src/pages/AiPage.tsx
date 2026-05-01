@@ -1,0 +1,3 @@
+import React,{useState} from 'react';import { api } from '../lib/api';
+export default function AiPage(){const [p,setP]=useState('');const [o,setO]=useState('');const [provider,setProvider]=useState<'gemini'|'grok'>('gemini');
+return <main className='page'><section className='card'><h1>AnonVZN AI</h1><select value={provider} onChange={e=>setProvider(e.target.value as any)}><option value='gemini'>Gemini</option><option value='grok'>Grok</option></select><input value={p} onChange={e=>setP(e.target.value)} placeholder='Ask AI...'/><button onClick={async()=>{const r=await api('/api/ai/chat',{method:'POST',body:JSON.stringify({provider,prompt:p})});setO(r.reply)}}>Send</button><div className='bubble'>{o}</div></section></main>}
